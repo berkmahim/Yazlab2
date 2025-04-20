@@ -62,6 +62,43 @@ router.post('/game/new', auth, async (req, res) => {
     const bag = createLetterBag();
     const player1Tiles = getRandomTiles(bag, 7);
     const player2Tiles = getRandomTiles(bag, 7);
+    // Rastgele mayınlar oluştur
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    const mineTypes = ['score_halve', 'score_transfer', 'tile_loss', 'block_turn', 'cancel_word'];
+    const mines = [];
+    const minePositions = new Set();
+    while (mines.length < 5) { // 5 mayın
+      const x = getRandomInt(0, 14);
+      const y = getRandomInt(0, 14);
+      const key = `${x},${y}`;
+      if (!minePositions.has(key)) {
+        minePositions.add(key);
+        mines.push({
+          x, y,
+          type: mineTypes[mines.length % mineTypes.length],
+          isActive: true
+        });
+      }
+    }
+    // Rastgele ödüller oluştur (mayınlarla çakışmasın)
+    const rewardTypes = ['remove_zone_block', 'remove_letter_block', 'extra_turn'];
+    const rewards = [];
+    const rewardPositions = new Set([...minePositions]);
+    while (rewards.length < 3) {
+      const x = getRandomInt(0, 14);
+      const y = getRandomInt(0, 14);
+      const key = `${x},${y}`;
+      if (!rewardPositions.has(key)) {
+        rewardPositions.add(key);
+        rewards.push({
+          x, y,
+          type: rewardTypes[rewards.length % rewardTypes.length],
+          isActive: true
+        });
+      }
+    }
     const game = new Game({
       player1: opponentId,
       player2: userId,
@@ -73,7 +110,9 @@ router.post('/game/new', auth, async (req, res) => {
       selectedDuration,
       remainingTiles: bag,
       board: Array.from({ length: 15 }, () => Array(15).fill('')),
-      history: []
+      history: [],
+      mines,
+      rewards
     });
     await game.save();
     // Her iki oyuncuya da gameId dön

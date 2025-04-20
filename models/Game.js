@@ -15,7 +15,29 @@ const gameSchema = new mongoose.Schema({
   selectedDuration: { type: String, required: true },
   remainingTiles: { type: [String], default: [] },
   history: { type: Array, default: [] },
-  winner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  winner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  mines: {
+    type: [
+      {
+        x: Number,
+        y: Number,
+        type: String, // örn: 'score_halve', 'score_transfer', 'tile_loss', 'block_turn', 'cancel_word'
+        isActive: { type: Boolean, default: true }
+      }
+    ],
+    default: []
+  },
+  rewards: {
+    type: [
+      {
+        x: Number,
+        y: Number,
+        type: String, // örn: 'remove_zone_block', 'remove_letter_block', 'extra_turn'
+        isActive: { type: Boolean, default: true }
+      }
+    ],
+    default: []
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Game', gameSchema);
